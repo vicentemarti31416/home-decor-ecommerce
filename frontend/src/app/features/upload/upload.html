@@ -1,0 +1,61 @@
+<main class="w-full mt-24">
+    <form [formGroup]="productForm" class="max-w-md mx-auto flex flex-col">
+        <div class="relative z-0 w-full mb-5 group">
+            <input id="name" name="name" formControlName="name" type="text" placeholder=" "
+                class="block mt-1.5 py-2 px-0 w-full text-sm text-heading bg-transparent border-0 border-b-2 border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer"
+                required />
+            <label for="name"
+                class="absolute text-sm text-body duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Name</label>
+        </div>
+        <div class="relative z-0 w-full mb-5 group">
+            <input type="text" name="description" id="description" formControlName="description"
+                class="block mt-1.5 py-2.5 px-0 w-full text-sm text-heading bg-transparent border-0 border-b-2 border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer"
+                placeholder=" " />
+            <label for="description"
+                class="absolute text-sm text-body duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Description</label>
+        </div>
+        <div class="relative z-0 w-full mb-5 group">
+            <input type="number" name="price" id="price" formControlName="price"
+                class="block mt-1.5 py-2.5 px-0 w-full text-sm text-heading bg-transparent border-0 border-b-2 border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer"
+                placeholder=" " required />
+            <label for="price"
+                class="absolute text-sm text-body duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Price
+            </label>
+        </div>
+        <div class="relative z-0 w-full mb-5 group">
+            <input type="text" name="reference" id="reference" formControlName="reference"
+                class="block mt-1.5 py-2.5 px-0 w-full text-sm text-heading bg-transparent border-0 border-b-2 border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer"
+                placeholder=" " required />
+            <label for="reference"
+                class="absolute text-sm text-body duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Reference</label>
+        </div>
+        <div class="relative z-0 w-full mb-5 group">
+            <input type="category" name="category" id="category" formControlName="category"
+                class="block mt-1.5 py-2.5 px-0 w-full text-sm text-heading bg-transparent border-0 border-b-2 border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer"
+                placeholder=" " />
+            <label for="category"
+                class="absolute text-sm text-body duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Category
+            </label>
+        </div>
+        <div class="relative z-0 w-full mb-5 group">
+            <label class="block mb-2.5 text-sm font-medium text-heading" for="file_input">Upload file</label>
+            <input (change)="onFileChange($event)"
+                class="cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body"
+                id="file_input" type="file">
+        </div>
+        @if (!product?.id) {
+        <button type="submit" (click)="saveProduct()"
+            class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">Save
+        </button>
+        } @else {
+        <button type="submit" (click)="updateProduct()"
+            class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">Update
+        </button>
+        }
+    </form>
+    <section class="flex justify-evenly flex-wrap max-w-screen p-28 gap-y-18">
+        @for (photo of photos(); track photo.publicId) {
+            <img [src]="photo.url" class="block object-contain w-72 h-auto cursor-pointer" alt="" (click)="deletePhoto(photo)">
+        }
+    </section>
+</main>

@@ -1,0 +1,131 @@
+<main class="w-full h-auto mt-24">
+    <div class="w-2/3 mx-auto border border-t-0 border-default rounded-b-base shadow-xs">
+        <div class="flex justify-between gap-4 p-4 md:p-5">
+            <img (click)="goToDetail(product()?.id)" class="w-72 h-72 cursor-pointer"
+                src="{{ product()?.photos[0]?.url }}" alt="">
+            <div class="flex flex-col justify-evenly">
+                <h3>Nombre: {{ product()?.name }}</h3>
+                <h4>Referencia: {{ product()?.reference }}</h4>
+                <h5>Precio: {{ product()?.price | currency: `EUR` }}</h5>
+                <!-- Rating -->
+                <div class="flex items-center">
+                    <!-- Average -->
+                    <p class="text-indigo-500 text-sm font-bold mr-2" href="">{{ product().rating | number: '1.0-1'}}
+                    </p>
+                    <!-- Stars -->
+                    @for (star of stars(); track $index) {
+                    <svg stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        class="w-4 h-4 text-indigo-500" viewBox="0 0 24 24">
+                        <defs>
+                            <linearGradient [id]="'star-fill-' + $index" x1="3" x2="21" y1="0" y2="0"
+                                gradientUnits="userSpaceOnUse">
+                                <stop [attr.offset]="star + '%'" stop-color="currentColor" />
+                                <stop [attr.offset]="star + '%'" stop-color="transparent" />
+                            </linearGradient>
+                        </defs>
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                            [attr.fill]="'url(#star-fill-' + $index + ')'">
+                        </path>
+                    </svg>
+                    }
+                    <!-- Reviews -->
+                    @if (product()?.ratings.length > 1) {
+                    <a class="text-sm ml-3">{{product()?.ratings.length}}
+                        Reseñas</a>
+                    } @else if (product()?.ratings.length === 1) {
+                    <a class="text-sm ml-3">{{product()?.ratings.length}}
+                        Reseña</a>
+                    } @else if (product()?.ratings.length === 0) {
+                    <p class="text-sm ml-3">{{product()?.ratings.length}} Reseñas</p>
+                    }
+                </div>
+                <!-- Statistics Bars -->
+                <div class="w-full">
+                    @for (percentage of percentages(); track $index) {
+                    <div (click)="setSelectedStars(percentages().length - $index)" [style.width.%]="percentage"
+                        class="h-4 my-2 pl-1 text-white text-xs cursor-pointer" [ngClass]="selectedStars() === percentages().length - $index
+                        ? 'bg-indigo-800' 
+                        : 'bg-indigo-500'">
+                        {{ percentage | number: '1.0-0'}}%
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- PAGINATOR-->
+    <nav class="w-2/3 mx-auto flex items-center flex-column flex-wrap md:flex-row justify-between pt-4"
+        aria-label="Table navigation">
+        <span class="text-sm font-normal text-gray-500 mb-4 md:mb-0 block w-full md:inline md:w-auto">Mostrando
+            <span class="font-semibold text-gray-900">{{min}}-{{max}}</span>
+            elementos de <span class="font-semibold text-gray-900">{{
+                totalElements }}</span></span>
+        <ul class="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
+            <li>
+                <a (click)="findAllReviewsPageable(0, 5)"
+                    class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 cursor-pointer">
+                    <img class="size-5" src="icons/first_page.png" alt>
+                </a>
+            </li>
+            <li>
+                <a (click)="findAllReviewsPageable((numberOfPage() - 1), 5)"
+                    class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 cursor-pointer">
+                    <img class="size-5" src="icons/arrow_left.png" alt>
+                </a>
+            </li>
+
+            @for (item of range(); track $index) {
+            <li>
+                <a (click)="findAllReviewsPageable(item - 1, 5)" [ngClass]="item === numberOfPage() + 1
+                    ? 'text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100'
+                    : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700'"
+                    class="flex items-center justify-center px-3 h-8 leading-tight border border-gray-300 cursor-pointer">
+                    {{ item }}
+                </a>
+            </li>
+            }
+
+            <li>
+                <a (click)="findAllReviewsPageable((numberOfPage() + 1), 5)"
+                    class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 cursor-pointer">
+                    <img class="size-5" src="icons/arrow_right.png" alt>
+                </a>
+            </li>
+            <li>
+                <a (click)="findAllReviewsPageable((totalPages() - 1), 5)"
+                    class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 cursor-pointer">
+                    <img class="size-5" src="icons/last_page.png" alt>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Comments -->
+    <section class="w-full">
+        <div class="w-2/3 mx-auto">
+            @for (review of reviewsFiltered(); track $index) {
+            <div class="my-8 p-4 md:p-5 border border-t-0 border-default rounded-b-base shadow-xs">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <!-- Stars -->
+                        @for (color of review.starColors; track $index) {
+                        <svg [attr.fill]="color" stroke="#645FEC" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" class="w-4 h-4" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
+                            </path>
+                        </svg>
+                        }
+                    </div>
+                    <h3>{{ review.customerName }}</h3>
+                </div>
+                <p>{{ review.comment }}</p>
+            </div>
+            }
+        </div>
+    </section>
+</main>
+
+<app-chat></app-chat>

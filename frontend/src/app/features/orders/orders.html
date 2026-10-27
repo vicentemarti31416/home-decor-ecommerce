@@ -1,0 +1,53 @@
+<main class="w-full h-auto mt-24 flex flex-col justify-center items-center">
+
+    @for (order of orders(); track order.id; let i = $index) {
+    @if (order.products.length > 0) {
+    <!--Heading-->
+    <button type="button" (click)="toggle(i)"
+        class="flex items-center justify-between w-2/3 mx-auto my-4 p-5 font-medium rtl:text-right text-body rounded-base shadow-xs border border-default hover:text-heading hover:bg-neutral-secondary-medium gap-3 aria-expanded:rounded-b-none aria-expanded:shadow-none">
+        <div class="flex justify-between w-full">
+            <h5>Referencia: <span class="text-heading">{{ order.id }}</span></h5>
+            <h5>Fecha: <span class="text-heading">{{ order.updatedDate | date:'mediumDate' }}</span></h5>
+            <h5>Estado: <span class="text-heading">{{ OrderStatus[order.status] }}</span></h5>
+        </div>
+        <svg class="w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+            viewBox="0 0 24 24" [class.rotate-180]="openIndex() !== i">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m5 15 7-7 7 7" />
+        </svg>
+    </button>
+    <!--Body-->
+    <div class="w-2/3 hidden border border-t-0 border-default rounded-b-base shadow-xs"
+        [class.hidden]="openIndex() !== i">
+        @for (product of order?.products; track $index) {
+        <div class="flex justify-between">
+            <div class="flex items-center gap-4 p-4 md:p-5">
+                <img (click)="goToDetail(product.id)" class="w-25 h-25 cursor-pointer" [src]="product.photo"
+                    [alt]="product.name">
+                <div>
+                    <h3>Nombre: {{ product.name }}</h3>
+                    <h4>Referencia: {{ product.reference }}</h4>
+                    <h5>Precio: {{ product.price | currency:'EUR':'symbol':'1.2-2' }}</h5>
+                    <h5>Cantidad: {{ product.quantity }}</h5>
+                </div>
+            </div>
+            @if (order.status === "PAID") {
+            <div class="gap-4 p-4 md:p-5 self-end">
+                <a (click)="sendState(order, product)"
+                    class="text-indigo-500 text-xs hover:text-indigo-800 hover:underline cursor-pointer">
+                    Dejar una valoración
+                </a>
+            </div>
+            }
+        </div>
+        }
+    </div>
+    } @else {
+        <img src="https://res.cloudinary.com/ddjupcyst/image/upload/v1793093378/pngwing.com_5_ppijoo.png" class="w-lg h-auto mt-24 mb-12" alt="imagen de caja vacía">
+        <h1 class="text-3xl">¡¡¡ TODAVÍA NO HA HECHO NINGÚN PEDIDO !!!</h1>
+    }
+    }
+</main>
+
+<app-chat></app-chat>
+<app-upbutton></app-upbutton>

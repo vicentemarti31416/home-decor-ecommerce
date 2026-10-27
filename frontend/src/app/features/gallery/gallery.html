@@ -1,0 +1,85 @@
+<!-- Carousel -->
+<div id="gallery" class="relative w-full mt-32" data-carousel="slide">
+    <!-- Carousel wrapper -->
+    <div class="relative h-56 overflow-hidden rounded-lg md:h-112.5">
+        <!-- Item 1 -->
+        <div class="hidden duration-1000 ease-in-out" data-carousel-item>
+            <img [src]="products()[17]?.photos[0].url" (click)="detail(products()[17])"
+                class="absolute block max-w-2/3 h-auto -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 cursor-pointer" [alt]="products()[17]?.name">
+        </div>
+        <!-- Item 2 -->
+        <div class="hidden duration-1000 ease-in-out" data-carousel-item="active">
+            <img [src]="products()[1]?.photos[0].url" (click)="detail(products()[1])"
+                class="absolute block max-w-2/3 h-auto -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 cursor-pointer" [alt]="products()[1]?.name">
+        </div>
+        <!-- Item 3 -->
+        <div class="hidden duration-1000 ease-in-out" data-carousel-item>
+            <img [src]="products()[11]?.photos[0].url" (click)="detail(products()[11])"
+                class="absolute block max-w-2/3 h-auto -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 cursor-pointer" [alt]="products()[11]?.name">
+        </div>
+        <!-- Item 4 -->
+        <div class="hidden duration-1000 ease-in-out" data-carousel-item>
+            <img [src]="products()[8]?.photos[0].url" (click)="detail(products()[8])"
+                class="absolute block max-w-2/3 h-auto -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 cursor-pointer" [alt]="products()[8]?.name">
+        </div>
+        <!-- Item 5 -->
+        <div class="hidden duration-1000 ease-in-out" data-carousel-item>
+            <img [src]="products()[4]?.photos[0].url" (click)="detail(products()[4])"
+                class="absolute block max-w-2/3 h-auto -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 cursor-pointer" [alt]="products()[4]?.name">
+        </div>
+    </div>
+    <!-- Slider controls -->
+    <button type="button"
+        class="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+        data-carousel-next>
+        <span
+            class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+            <svg class="w-5 h-5 text-white rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="m15 19-7-7 7-7" />
+            </svg>
+            <span class="sr-only">Previous</span>
+        </span>
+    </button>
+    <button type="button"
+        class="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+        data-carousel-prev>
+        <span
+            class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+            <svg class="w-5 h-5 text-white rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="m9 5 7 7-7 7" />
+            </svg>
+            <span class="sr-only">Next</span>
+        </span>
+    </button>
+</div>
+<!-- Jumbotron -->
+<section class="bg-neutral-primary">
+    <div class="py-8 px-4 mb-10 mx-auto max-w-3/4 text-center lg:py-16">
+        <h1 class="mb-6 text-4xl font-bold tracking-tighter text-heading md:text-5xl lg:text-6xl">
+            Damos vida a tu hogar
+        </h1>
+        <p class="mb-8 text-base font-normal text-body md:text-xl">
+            Jarrones y objetos decorativos elegidos uno a uno para dar carácter a cada rincón de tu casa. Cerámica, vidrio y materiales naturales con alma artesanal.
+        </p>
+    </div>
+</section>
+
+<!-- Gallery -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
+    @for (item of products(); track item.id) {
+    <div class="relative cursor-pointer flex justify-center bg-gray-100" (click)="detail(item)">
+        <img class="h-auto max-w-full rounded-base" [src]="item.photos[0]?.url" [alt]="item.name">
+        <div
+            class="absolute bottom-0 h-36 w-full bg-mist-950 opacity-0 transition hover:opacity-70 text-white text-center flex justify-center items-center ">
+            <h3>{{ item.name }}</h3>
+        </div>
+    </div>
+    }
+</div>
+
+<app-chat></app-chat>
+<app-upbutton></app-upbutton>

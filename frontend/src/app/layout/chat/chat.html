@@ -1,0 +1,71 @@
+@if (customer()) {
+<div id="accordion-collapse" data-accordion="collapse"
+    class="fixed left-4 bottom-4 rounded-base border w-1/3 m-auto border-default overflow-hidden shadow-xs z-100 bg-neutral-primary">
+    <h2 id="accordion-collapse-heading">
+        <button type="button"
+            class="flex items-center justify-between w-full p-2 font-medium rtl:text-right text-body rounded-t-base border border-t-0 border-x-0 border-b-default hover:text-heading hover:bg-neutral-secondary-medium gap-3 cursor-pointer"
+            data-accordion-target="#accordion-collapse-body" aria-expanded="false"
+            aria-controls="accordion-collapse-body" (click)="toggle()">
+            <img class="w-8 h-8 rounded-full"
+                src="https://res.cloudinary.com/ddjupcyst/image/upload/v1792578412/logo_Chat_ozvxym.png"
+                alt="Chat logo">
+            <svg data-accordion-icon [class.rotate-180]="!isChatClosed()" class="w-5 h-5 rotate-180 shrink-0 " aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="m5 15 7-7 7 7"/>
+            </svg>
+        </button>
+    </h2>
+    <div id="accordion-collapse-body" [class.hidden]="isChatClosed()"
+        class="hidden border border-s-0 border-e-0 border-t-0 border-b-default"
+        aria-labelledby="accordion-collapse-heading">
+        <!--Accordion Body-->
+        <ul #chatContainer class="flex flex-col p-4 gap-4 min-h-96 max-h-96 overflow-y-scroll">
+            @for (message of messages(); track $index) {
+            <li class="message right">
+                <!--Chat Bubble-->
+                <div class="flex items-start gap-2.5"
+                    [ngClass]="customer()?.username === message.sender ? 'flex-row' : 'flex-row-reverse'">
+                    <img class="w-8 h-8 rounded-full"
+                        [src]="customer()?.username === message.sender ? customer()?.photo : participant()?.photo"
+                        alt="Imagen del usuario">
+                    <!--Text-->
+                    <div [ngClass]="customer()?.username === message.sender ? 'rounded-tl-none' : 'rounded-tr-none'"
+                        class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center space-x-1.5 rtl:space-x-reverse">
+                            <span class="text-sm font-semibold text-heading">{{message.sender}}</span>
+                            <span class="text-xs text-body">{{message.created | date:'HH:mm'}}</span>
+                        </div>
+                        <p class="text-sm py-2.5 text-body">
+                            {{message.message}}
+                        </p>
+                        <span class="text-sm text-body"></span>
+                    </div>
+                </div>
+            </li>
+            }
+        </ul>
+
+        <div class="flex px-4 gap-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            @for(contact of participants(); track $index) {
+            @if (contact.username !== customer()?.username) {
+            <button type="button" (click)="getChat(contact.username)">
+                <img class="w-8 h-8 rounded-full cursor-pointer"
+                    [ngClass]="contact.username === participant()?.username ? 'border-4 border-indigo-700': 'border-0 border-white'"
+                    [src]="contact.photo" alt="contact.username">
+            </button>
+            }
+            }
+        </div>
+
+        <div class="flex gap-4 p-4">
+            <input type="text" id="participants" placeholder="Mensaje..." [(ngModel)]="message"
+                (keyup.enter)="sendMessage()"
+                class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base block w-full px-3 py-2.5 shadow-xs placeholder:text-body"
+                required />
+            <button type="button" (click)="sendMessage()"
+                class="text-white bg-indigo-700 box-border border border-transparent hover:bg-indigo-900 focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-full text-sm px-4 py-2.5 focus:outline-none cursor-pointer">Enviar</button>
+        </div>
+    </div>
+</div>
+}
