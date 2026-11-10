@@ -1,0 +1,76 @@
+<main class="w-full h-auto flex flex-col justify-center items-center">
+    <!--Heading-->
+    <div
+        class="flex items-center justify-between w-2/3 mx-auto my-4 p-5 font-medium rtl:text-right text-body rounded-base shadow-xs border border-default hover:text-heading hover:bg-neutral-secondary-medium gap-3 aria-expanded:rounded-b-none aria-expanded:shadow-none">
+        <div class="flex justify-between w-full">
+            <h5>Referencia: <span class="text-heading">{{ order().id }}</span></h5>
+            <h5>Fecha: <span class="text-heading">{{ order().createdDate | date:'mediumDate' }}</span></h5>
+            <h5>Estado: <span class="text-heading">{{ OrderStatus[order().status] }}</span></h5>
+        </div>
+    </div>
+    <!--Body-->
+    <div class="w-2/3 border border-t-0 border-default rounded-b-base shadow-xs">
+        <div class="flex justify-between">
+            <div class="flex items-center gap-4 p-4 md:p-5">
+                <img (click)="goToDetail(product().id)" class="w-25 h-25 cursor-pointer" src="{{product().photo}}"
+                    alt="">
+                <div>
+                    <h3>Nombre: {{ product().name }}</h3>
+                    <h4>Referencia: {{ product().reference }}</h4>
+                    <h5>Precio: {{ product().price | currency: `EUR` }}</h5>
+                    <h5>Cantidad: {{ product().quantity }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form [formGroup]="ratingForm" class="w-2/3 mx-auto my-4">
+        <!--Comment-->
+        <textarea id="comment" name="comment" formControlName="comment" type="text" rows="4"
+            class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full p-3.5 shadow-xs placeholder:text-body"
+            placeholder="Deja aquí tu valoración..." [class.placeholder:text-danger]="submitted() && ratingForm.invalid">
+        </textarea>
+        <!--Stars-->
+        <div class="flex justify-between mt-4">
+            <span class="flex items-center">
+                @for (color of stars(); track $index) {
+                <svg [attr.fill]="color" (click)="setRating($index)" (mouseover)="fillColor($index)"
+                    (mouseleave)="emptyColor()" stroke="#645FEC" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="2" class="w-4 h-4" viewBox="0 0 24 24">
+                    <path
+                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
+                    </path>
+                </svg>
+                }
+            </span>
+            @if (this.review() == null) {
+            <button type="submit" (click)="sendValoration()"
+                class="flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded cursor-pointer">Valorar
+            </button>
+            } @else {
+            <button type="submit" (click)="sendValoration()"
+                class="flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded cursor-pointer">Actualizar
+            </button>
+            }
+        </div>
+        @if (ratingForm.get('stars')?.invalid && submitted()) {
+        <div class="text-xs text-danger">Debe añadir una valoración</div>
+        }
+    </form>
+</main>
+
+@if (isAddReview()) {
+<!-- Toast -->
+<div id="toast-illustration"
+    class="w-full absolute top-24 right-4 max-w-sm p-3 text-body bg-neutral-primary-soft rounded-base shadow-xs border border-default"
+    role="alert">
+    <div class="flex justify-between items-center">
+        <img [src]="product()?.photo" class="w-24 h-auto max-w-full rounded" alt="Smartphone application features">
+        <div class="ms-4 text-sm font-normal text-body">
+            <span class="mb-1 text-base font-medium text-heading">{{ toastTitle() }}</span>
+            <div class="">{{ toastBody() }}</div>
+        </div>
+    </div>
+</div>
+}
+
+<app-chat></app-chat>
