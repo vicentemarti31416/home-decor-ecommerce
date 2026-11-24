@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Please Log In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+</head>
+<body>
+<section class="text-gray-600 body-font">
+    <div class="container px-5 py-24 mx-auto flex flex-wrap items-center justify-center">
+
+        <!-- Mensajes de error / logout -->
+        <div th:if="${param.error}" class="w-full text-center text-red-500 mb-4">
+            Invalid username and password.
+        </div>
+        <div th:if="${param.logout}" class="w-full text-center text-green-600 mb-4">
+            You have been logged out.
+        </div>
+
+        <div class="lg:w-2/6 md:w-1/2 bg-gray-100 rounded-lg p-8 flex flex-col w-full mt-10 md:mt-0">
+            <h2 class="text-gray-900 text-lg font-medium title-font mb-5">Sign In</h2>
+
+            <form th:action="@{/login}" method="post" class="flex flex-col">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="relative mb-4">
+                    <label for="username" class="leading-7 text-sm text-gray-600">Username</label>
+                    <input type="text" id="username" name="username"
+                           class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                </div>
+
+                <div class="relative mb-4">
+                    <label for="password" class="leading-7 text-sm text-gray-600">Password</label>
+                    <input type="password" id="password" name="password"
+                           class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                </div>
+
+                <button type="submit"
+                        class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">
+                    Sign In
+                </button>
+            </form>
+
+            <p class="text-xs text-gray-500 mt-3">
+                Don't you remember the password?
+                <a class="text-indigo-500 hover:text-indigo-800 hover:underline cursor-pointer"
+                   th:href="@{http://localhost:8090/email}">Reset Password</a>
+            </p>
+
+            <p class="text-xs text-gray-500 mt-3">
+                Don't you have an account?
+                <a class="text-indigo-500 hover:text-indigo-800 hover:underline cursor-pointer"
+                   th:href="@{http://localhost:8090/register}">Create Account</a>
+            </p>
+        </div>
+    </div>
+</section>
+</body>
+</html>
+

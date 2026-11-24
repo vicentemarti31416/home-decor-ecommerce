@@ -1,0 +1,120 @@
+server:
+  port: 8090
+  netty:
+    max-initial-line-length: 16384
+    max-header-size: 16384
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      httpclient:
+        max-header-size: 16384
+        max-initial-line-length: 16384
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "http://127.0.0.1:4200"
+              - "http://localhost:8090"
+              - "http://127.0.0.1:8090"
+            allowedHeaders:
+              - '*'
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+            allowedCredentials: true
+      default-filters:
+
+      routes:
+        - id: route5
+          uri: http://localhost:8095/
+          predicates:
+            - Path=/api/products/**,/api/ratings/**
+          filters:
+            - TokenRelay=
+            - StripPrefix=1
+        - id: route6
+          uri: http://localhost:8096/
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - TokenRelay=
+            - StripPrefix=1
+        - id: route7
+          uri: http://localhost:8097/
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - TokenRelay=
+            - StripPrefix=1
+        - id: route8
+          uri: http://localhost:8098/
+          predicates:
+            - Path=/api/clients/register
+          filters:
+            - StripPrefix=1
+            - RemoveRequestHeader=Authorization
+        - id: route9
+          uri: http://localhost:8099
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - TokenRelay=
+            - StripPrefix=1
+        - id: route10
+          uri: http://localhost:8100
+          predicates:
+            - Path=/api/mail/**
+          filters:
+            - TokenRelay=
+            - StripPrefix=1
+        - id: chat-api
+          uri: http://localhost:8111
+          predicates:
+            - Path=/api/chat/**,/api/messages/**, /api/participants/**
+          filters:
+            - TokenRelay=
+
+        - id: chat-ws
+          uri: http://localhost:8111
+          predicates:
+            - Path=/ws/**
+          filters:
+            - TokenRelay=
+        - id: angular
+          uri: http://localhost:4200/
+          predicates:
+            - Path=/**
+  security:
+    oauth2:
+      client:
+        registration:
+          gateway:
+            provider: spring
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope: openid, profile
+            authorization-grant-type: authorization_code
+            redirect-uri: http://127.0.0.1:8090/login/oauth2/code/gateway
+        provider:
+          spring:
+            authorization-uri: http://localhost:9000/oauth2/authorize
+            token-uri: http://localhost:9000/oauth2/token
+            jwk-set-uri: http://localhost:9000/oauth2/jwks
+            user-info-uri: http://localhost:9000/userinfo
+            user-name-attribute: sub
+#logging:
+  #level:
+    #org.springframework.cloud.gateway: TRACE
+    #org.springframework.security: DEBUG
+    #org.springframework.security.oauth2.client.oidc.web.server.logout: TRACE
+    #org.springframework.web.reactive: DEBUG
+    #org.springframework.security.oauth2.client: TRACE
+    #org.springframework.web.reactive.function.client: DEBUG
+    #reactor.netty.http.client: DEBUG
+    #reactor.netty.http.client.HttpClient: DEBUG

@@ -1,0 +1,225 @@
+<section class="text-gray-600 body-font overflow-hidden relative">
+    <div class="max-w-7xl py-12 mx-auto flex max-h-[calc(100vh-150px)]">
+        <!--Gallery-->
+        <div class="w-1/6 max-h-full overflow-y-scroll rounded">
+            @for (photo of product()?.photos; track $index) {
+            <div class="relative" (click)="selectPhoto(photo?.url)">
+                <img [src]="photo?.url" alt="" class="object-cover cursor-pointer">
+                @if (photoSelected === photo.url) {
+                <div class="absolute inset-0 shadow-[inset_0_0_30px_rgba(99,102,241,0.6)] pointer-events-none"></div>
+                }
+            </div>
+            }
+        </div>
+        <!--Image-->
+        <img [src]="photoSelected" alt="" class="w-3/6 rounded">
+        <!--Description-->
+        <div class="w-2/6 p-4 flex flex-col justify-between">
+            <!-- Name -->
+            <h1 class="text-gray-900 text-3xl title-font font-medium mb-1">{{ product()?.name}}</h1>
+            <!-- Description -->
+            <p class="leading-relaxed">{{ product()?.description }}</p>
+
+            <div>
+                <div class="flex justify-between mb-4">
+                    <!-- Rating -->
+                    <div class="flex items-center">
+                        <!-- Average -->
+                        <p class="text-indigo-500 text-sm font-bold mr-2" href="">{{ product()?.rating | number: '1.0-1'}}</p>
+                        <!-- Stars -->
+                        @for (star of stars(); track $index) {
+                        <svg stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            class="w-4 h-4 text-indigo-500" viewBox="0 0 24 24">
+                            <defs>
+                                <linearGradient [id]="'star-fill-' + $index" x1="3" x2="21" y1="0" y2="0"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop [attr.offset]="star + '%'" stop-color="currentColor" />
+                                    <stop [attr.offset]="star + '%'" stop-color="transparent" />
+                                </linearGradient>
+                            </defs>
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                                [attr.fill]="'url(#star-fill-' + $index + ')'">
+                            </path>
+                        </svg>
+                        }
+                        <!-- Reviews -->
+                        @if (product()?.ratings.length > 1) {
+                        <a class="text-sm ml-3 cursor-pointer" (click)="goToReviews()">{{ product()?.ratings.length }}
+                            Reseñas</a>
+                        } @else if (product()?.ratings.length === 1) {
+                        <a class="text-sm ml-3 cursor-pointer" (click)="goToReviews()">{{ product()?.ratings.length }}
+                            Reseña</a>
+                        } @else if (product()?.ratings.length === 0) {
+                        <p class="text-sm ml-3">{{ product()?.ratings.length }} Reseñas</p>
+                        }
+                    </div>
+
+                    <!-- Social Media -->
+                    <div class="flex ml-3 pl-3 py-2 space-x-2s">
+                        <a class="text-gray-500">
+                            <svg fill="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                class="w-5 h-5" viewBox="0 0 24 24">
+                                <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path>
+                            </svg>
+                        </a>
+                        <a class="text-gray-500">
+                            <svg fill="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                class="w-5 h-5" viewBox="0 0 24 24">
+                                <path
+                                    d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z">
+                                </path>
+                            </svg>
+                        </a>
+                        <a class="text-gray-500">
+                            <svg fill="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                class="w-5 h-5" viewBox="0 0 24 24">
+                                <path
+                                    d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z">
+                                </path>
+                            </svg>
+                        </a>
+                    </div>
+
+                    @if (!isFavorite()) {
+                    <!--Añadir a favoritos-->
+                    <button (click)="addFavorite()"
+                        class="rounded-full w-10 h-10 bg-gray-200 p-0 border-0 inline-flex items-center justify-center text-gray-500 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="currentColor">
+                            <path
+                                d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z" />
+                        </svg>
+                    </button>
+                    } @else {
+                    <!--Eliminar de favoritos-->
+                    <button (click)="deleteFavorite()"
+                        class="rounded-full w-10 h-10 bg-gray-200 p-0 border-0 inline-flex items-center justify-center text-gray-500 cursor-pointer">
+                        <svg fill="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            class="w-5 h-5" viewBox="0 0 24 24">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z">
+                            </path>
+                        </svg>
+                    </button>
+                    }
+                </div>
+                <!--Barra inferior-->
+                <form [formGroup]="itemForm" class="flex justify-between items-center">
+                    <!-- Price -->
+                    <span class="title-font font-medium text-2xl text-gray-900">
+                        {{ product()?.price | currency: `EUR` }}
+                    </span>
+                    <!--Quantity-->
+                    <div class="relative flex items-center justify-center">
+                        <button type="button" id="decrement-button" aria-label="decrement-button"
+                            (click)="updateQuantity(-1)"
+                            class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6 cursor-pointer">
+                            <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="M5 12h14" />
+                            </svg>
+                        </button>
+                        <input type="text" id="counter-input" data-input-counter formControlName="quantity"
+                            class="shrink-0 text-heading border-0 bg-transparent text-sm font-normal focus:outline-none focus:ring-0 max-w-10 text-center"
+                            placeholder="" value="" required />
+                        <button type="button" id="increment-button" aria-label="increment-button"
+                            (click)="updateQuantity(+1)"
+                            class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6 cursor-pointer">
+                            <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="M5 12h14m-7 7V5" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Action button -->
+                    <button (click)="addItemToCart(product())"
+                        class="flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded cursor-pointer">Añadir
+                    </button>
+                </form>
+                @if (isMaxItems()) {
+                <h3 class="my-4 text-danger text-sm">Sólo puede añadir un máximo de 5 unidades</h3>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (isAddProductToast()) {
+    <!-- Toast -->
+    <div id="toast-illustration"
+        class="w-full absolute top-4 right-4 max-w-sm p-3 text-body bg-neutral-primary-soft rounded-base shadow-xs border border-default"
+        role="alert">
+        <div class="flex justify-between items-center">
+            <img [src]="product()?.photos[0].url" class="w-24 h-auto max-w-full rounded"
+                alt="Smartphone application features">
+            <div class="ms-4 text-sm font-normal text-body">
+                <span class="mb-1 text-base font-medium text-heading">Artículo añadido</span>
+                <div class="">El artículo se ha añadido correctamente al carrito de compra</div>
+            </div>
+        </div>
+        <button type="button" (click)="showAddProductToast()"
+            class="absolute top-2 end-2 ms-auto flex items-center justify-center text-body hover:text-heading bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none"
+            data-dismiss-target="#toast-message-cta" aria-label="Close">
+            <span class="sr-only">Cerrar</span>
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18 17.94 6M18 18 6.06 6" />
+            </svg>
+        </button>
+    </div>
+    }
+
+    @if (isFavoriteToast()) {
+    <!-- Toast -->
+    <div id="toast-illustration"
+        class="w-full absolute top-4 right-4 max-w-sm p-3 text-body bg-neutral-primary-soft rounded-base shadow-xs border border-default"
+        role="alert">
+        <div class="flex justify-between items-center">
+            <img [src]="product()?.photos[0].url" class="w-24 h-auto max-w-full rounded"
+                alt="Smartphone application features">
+            <div class="ms-4 text-sm font-normal text-body">
+                <span class="mb-1 text-base font-medium text-heading">Artículo añadido a favoritos</span>
+                <div class="">El artículo se ha añadido a la lista de favoritos</div>
+            </div>
+        </div>
+        <button type="button" (click)="showFavoriteToast()"
+            class="absolute top-2 end-2 ms-auto flex items-center justify-center text-body hover:text-heading bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none"
+            data-dismiss-target="#toast-message-cta" aria-label="Close">
+            <span class="sr-only">Cerrar</span>
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18 17.94 6M18 18 6.06 6" />
+            </svg>
+        </button>
+    </div>
+    }
+
+    <!-- Alert -->
+    @if (this.isNotEnough()) {
+    <div id="toast-danger"
+        class="w-full absolute top-4 right-4 max-w-xs p-4 mb-4 text-sm text-fg-danger rounded-base bg-danger-soft border border-danger"
+        role="alert">
+        <h3 class="font-semibold">¡No hay sufciente stock del producto!</h3>
+        <h5 class="mt-2">
+            Se ha añadido a la cesta el máximo: {{ product().stock }}
+        </h5>
+        <button type="button" (click)="showNotEnough()"
+            class="absolute top-2 end-2 ms-auto flex items-center justify-center text-fg-danger hover:text-fg-danger-strong font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none"
+            data-dismiss-target="#toast-message-cta" aria-label="Close">
+            <span class="sr-only">Cerrar</span>
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 18 17.94 6M18 18 6.06 6" />
+            </svg>
+        </button>
+    </div>
+    }
+
+</section>
+
+<app-chat></app-chat>

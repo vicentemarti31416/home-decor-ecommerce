@@ -1,0 +1,51 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: store-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: store
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d:ro
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: store-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "5672:5672"     # AMQP (microservicios)
+      - "15672:15672"   # panel web
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: store-stripe-cli
+    restart: unless-stopped
+    command: listen --events payment_intent.succeeded,payment_intent.payment_failed --forward-to host.docker.internal:8090/api/payments/webhook
+    volumes:
+      - ${USERPROFILE}/.stripe:/root/.config/stripe
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: store-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mariadb
+      PMA_USER: ${PMA_USER}
+      PMA_PASSWORD: ${PMA_PASSWORD}
+    ports:
+      - "8081:80"
+    depends_on:
+      - mariadb
+
+volumes:
+  mariadb-data:
+  rabbitmq-data:

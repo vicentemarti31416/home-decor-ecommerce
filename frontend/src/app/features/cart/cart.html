@@ -1,0 +1,123 @@
+@if (shoppingCart()?.items?.length > 0) {
+<div class="flex justify-center items-center py-8">
+    <ul class="flex items-center gap-0">
+        <!--Cart-->
+        <li class="bg-indigo-500 w-10 h-10 rounded-full flex justify-center items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 -960 960 960" width="24px"
+                fill="#ffffff">
+                <path
+                    d="M223.5-103.5Q200-127 200-160t23.5-56.5Q247-240 280-240t56.5 23.5Q360-193 360-160t-23.5 56.5Q313-80 280-80t-56.5-23.5Zm400 0Q600-127 600-160t23.5-56.5Q647-240 680-240t56.5 23.5Q760-193 760-160t-23.5 56.5Q713-80 680-80t-56.5-23.5ZM246-720l96 200h280l110-200H246Zm-38-80h590q23 0 35 20.5t1 41.5L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68-39.5t-2-78.5l54-98-144-304H40v-80h130l38 80Zm134 280h280-280Z" />
+            </svg>
+        </li>
+        <hr class="w-52 h-2 bg-gray-500" />
+        <!--Shipping-->
+        <li class="bg-gray-500 w-10 h-10 rounded-full flex justify-center items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="25px" height="25px" viewBox="0 -960 960 960" fill="#ffffff">
+                <path
+                    d="M155-227q-35-35-35-85H48v-408q0-29.7 21.15-50.85Q90.3-792 120-792h552v144h120l120 168v168h-72q0 50-35 85t-85 35q-50 0-85-35t-35-85H360q0 50-35 85t-85 35q-50 0-85-35Zm119-51q14-14 14-34t-14-34q-14-14-34-14t-34 14q-14 14-14 34t14 34q14 14 34 14t34-14ZM120-384h24q17-23 42-35.5t54-12.5q29 0 54 12.5t41.53 35.5H600v-336H120v336Zm634 106q14-14 14-34t-14-34q-14-14-34-14t-34 14q-14 14-14 34t14 34q14 14 34 14t34-14Zm-82-178 168-1-85-119h-83v120Zm-310-93Z" />
+            </svg>
+        </li>
+        <hr class="w-52 h-2 bg-gray-500" />
+        <!--Payment-->
+        <li class="bg-gray-500 w-10 h-10 rounded-full flex justify-center items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="#ffffff">
+                <path
+                    d="M192-264v-312h72v312h-72Zm252 0v-312h72v312h-72ZM96-144v-72h768v72H96Zm600-120v-312h72v312h-72ZM96-624v-96l384-192 384 192v96H96Zm113-72h542-542Zm0 0h542L480-831 209-696Z" />
+            </svg>
+        </li>
+    </ul>
+</div>
+<div
+    class="relative overflow-x-auto max-w-2/3 mx-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+    <table class="w-full text-sm text-left rtl:text-right text-body">
+        <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
+            <tr>
+                <th scope="col" class="px-16 py-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="#686D7B">
+                        <path
+                            d="M24 48C10.7 48 0 58.7 0 72C0 85.3 10.7 96 24 96L69.3 96C73.2 96 76.5 98.8 77.2 102.6L129.3 388.9C135.5 423.1 165.3 448 200.1 448L456 448C469.3 448 480 437.3 480 424C480 410.7 469.3 400 456 400L200.1 400C188.5 400 178.6 391.7 176.5 380.3L171.4 352L475 352C505.8 352 532.2 330.1 537.9 299.8L568.9 133.9C572.6 114.2 557.5 96 537.4 96L124.7 96L124.3 94C119.5 67.4 96.3 48 69.2 48L24 48zM208 576C234.5 576 256 554.5 256 528C256 501.5 234.5 480 208 480C181.5 480 160 501.5 160 528C160 554.5 181.5 576 208 576zM432 576C458.5 576 480 554.5 480 528C480 501.5 458.5 480 432 480C405.5 480 384 501.5 384 528C384 554.5 405.5 576 432 576z" />
+                    </svg>
+                </th>
+                <th scope="col" class="px-6 py-3 font-medium">
+                    Producto
+                </th>
+                <th scope="col" class="px-6 py-3 font-medium">
+                    Cantidad
+                </th>
+                <th scope="col" class="px-6 py-3 font-medium">
+                    Precio
+                </th>
+                <th scope="col" class="px-6 py-3 font-medium">
+                    
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (productsCart().length > 0) {
+            @for (item of productsCart(); track item.id) {
+            <tr class="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium">
+                <td class="p-4">
+                    <img (click)="goToDetail(item.id)" [src]="item?.photos[0]?.url"
+                        class="w-16 md:w-24 max-w-full max-h-full rounded cursor-pointer" [alt]="item.name">
+                </td>
+                <td class="px-6 py-4 font-semibold text-heading">
+                    {{ item.name }}
+                </td>
+                <td class="px-6 py-4">
+                    <form class="max-w-xs mx-auto">
+                        <label for="counter-input-1" class="sr-only">Choose quantity:</label>
+                        <div class="relative flex items-center">
+                            <button (click)="updateQuantity(-1, item)" type="button" id="decrement-button" aria-label="decrement-button"
+                                class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6 cursor-pointer">
+                                <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="M5 12h14" />
+                                </svg>
+                            </button>
+                            <input type="text" id="counter-input-1" 
+                                class="shrink-0 text-heading border-0 bg-transparent text-sm font-normal focus:outline-none focus:ring-0 max-w-10 text-center"
+                                placeholder="" value="{{ item.quantity }}" required />
+                            <button (click)="updateQuantity(+1, item)" type="button" id="increment-button" aria-label="increment-button"
+                                class="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary rounded-full text-sm focus:outline-none h-6 w-6 cursor-pointer">
+                                <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="M5 12h14m-7 7V5" />
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                    <!-- Alert -->
+                    @if (this.isNotEnough() && item.id === productIdWithoutStock) {
+                    <h5 class="mt-2 text-fg-danger">
+                        El máximo es {{ item.quantity }}
+                    </h5>
+                    }
+                </td>
+                <td class="px-6 py-4 font-semibold text-heading">
+                    {{ item?.price | currency:'EUR':'symbol':'1.2-2' }}
+                </td>
+                <td class="px-6 py-4">
+                    <a (click)="removeItem(item)"
+                        class="font-medium text-fg-danger hover:underline cursor-pointer">Eliminar</a>
+                </td>
+            </tr>
+            }}
+        </tbody>
+    </table>
+    <div class="w-full flex justify-end items-center">
+        <h3 class="text-lg font-normal text-heading">Total: {{ total() | currency:'EUR':'symbol':'1.2-2' }}</h3>
+        <button (click)="buy()"
+            class="flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded cursor-pointer m-4">Comprar
+        </button>
+    </div>
+</div>
+} @else {
+<main class="flex flex-col items-center">
+    <img src="/images/empty_cart.png" class="w-lg h-auto" alt="empty_cart">
+    <h1 class="text-5xl">Carrito de compra vacío</h1>
+</main>
+}
+
+<app-chat></app-chat>
