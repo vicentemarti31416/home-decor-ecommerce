@@ -54,13 +54,21 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendOrderConfirmation(String recipient, String subject, OrderResponse orderResponse) {
+    public void sendEmail(String recipient, String subject, String message) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(recipient);
+        mailMessage.setFrom(emailUser);
+        mailMessage.setSubject(subject);
+        mailMessage.setText(message);
+        mailSender.send(mailMessage);
+    }
 
+    @Override
+    public void sendOrderConfirmation(String recipient, String subject, OrderResponse orderResponse) {
         try {
             Context context = new Context();
             context.setVariable("orderResponse", orderResponse);
             String htmlContent = templateEngine.process("order-confirmation", context);
-
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(recipient);
@@ -68,9 +76,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
             helper.setFrom(from);
-
             mailSender.send(message);
-
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
@@ -78,21 +84,17 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendEnableAccount(String recipient, String subject, String token) {
-
         try {
             Context context = new Context();
             context.setVariable("emailConfirmationToken", token);
             String htmlContent = templateEngine.process("email-confirmation", context);
-
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(recipient);
             helper.setFrom(emailUser);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
-
             mailSender.send(message);
-
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
@@ -100,21 +102,17 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendResetPassword(String recipient, String subject, String message) {
-
         try {
             Context context = new Context();
             context.setVariable("message", message);
             String htmlContent = templateEngine.process("reset-password", context);
-
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setTo(recipient);
             helper.setFrom(emailUser);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
-
             mailSender.send(mimeMessage);
-
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
@@ -122,55 +120,33 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendPasswordChanged(String recipient, String subject, String message) {
-
         try {
             Context context = new Context();
             context.setVariable("message", message);
             String htmlContent = templateEngine.process("password-changed", context);
-
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setTo(recipient);
             helper.setFrom(emailUser);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
-
             mailSender.send(mimeMessage);
-
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public void sendEmail(String recipient, String subject, String message) {
-
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-
-        mailMessage.setTo(recipient);
-        mailMessage.setFrom(emailUser);
-        mailMessage.setSubject(subject);
-        mailMessage.setText(message);
-
-        mailSender.send(mailMessage);
-    }
-
-
-    @Override
-    public void sendEmailWithFile(String recipient, String subject, String message, File file) {
-
+    private void sendEmailWithFile(String recipient, String subject, String message, File file) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
-
+            MimeMessageHelper mimeMessageHelper =
+                    new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
             mimeMessageHelper.setTo(recipient);
             mimeMessageHelper.setFrom(emailUser);
             mimeMessageHelper.setSubject(subject);
             mimeMessageHelper.setText(message);
             mimeMessageHelper.addAttachment(file.getName(), file);
-
             mailSender.send(mimeMessage);
-
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }

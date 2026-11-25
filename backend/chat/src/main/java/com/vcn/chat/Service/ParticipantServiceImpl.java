@@ -25,7 +25,9 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public Participant findByUsername(String username) {
-        return participantRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("Contacto no encontrado"));
+        return participantRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Contacto no encontrado"));
     }
 
     @Override
@@ -33,15 +35,16 @@ public class ParticipantServiceImpl implements ParticipantService {
         return participantRepository.save(participant);
     }
 
-    public ParticipantDTO participantToParticipantDTO(Participant participant) {
-        return new ParticipantDTO(
-                participant.getId(),
-                participant.getUsername(),
-                participant.getPhoto()
-        );
+    private ParticipantDTO participantToParticipantDTO(Participant participant) {
+        return ParticipantDTO
+                .builder()
+                .id(participant.getId())
+                .username(participant.getUsername())
+                .photo(participant.getPhoto())
+                .build();
     }
 
-    public List<ParticipantDTO> listParticipantToListParticipantDTO(List<Participant> participants) {
+    private List<ParticipantDTO> listParticipantToListParticipantDTO(List<Participant> participants) {
         return participants.stream().map(this::participantToParticipantDTO).toList();
     }
 }

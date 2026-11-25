@@ -23,7 +23,6 @@ public class ChatRestController {
         this.messageService = messageService;
     }
 
-    // TODO: Falta hacer que cuando un usuario se registra se cree un Participant con sus datos con RestClient
     @GetMapping("/chat/{receiver}")
     public ResponseEntity<?> getChat(@AuthenticationPrincipal Jwt jwt, @PathVariable String receiver) {
         return ResponseEntity.ok(chatService.getChat(jwt.getSubject(), receiver));

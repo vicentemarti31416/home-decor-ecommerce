@@ -36,7 +36,8 @@ public class PaymentsController {
      * */
     // Está mostrando el default después de realizar un pago correctamente
     @PostMapping("/webhook")
-    public ResponseEntity<?> handleWebhook(@Validated @RequestBody String payload, @RequestHeader("Stripe-Signature") String signature) throws SignatureVerificationException {
+    public ResponseEntity<?> handleWebhook(@Validated @RequestBody String payload,
+                                           @RequestHeader("Stripe-Signature") String signature) throws SignatureVerificationException {
         paymentsService.handleWebhook(payload, signature);
         return ResponseEntity.ok("ok");
     }
