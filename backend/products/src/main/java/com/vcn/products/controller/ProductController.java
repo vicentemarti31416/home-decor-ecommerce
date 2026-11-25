@@ -67,11 +67,6 @@ public class ProductController {
         return productService.findByIdRestClient(id);
     }
 
-    @PostMapping("/restclient/updateStock")
-    public HttpStatus updateStock(@Validated @RequestBody Map<Long, Long> products, BindingResult bindingResult) {
-        return productService.updateStock(products);
-    }
-
     @PostMapping
     public ResponseEntity<?> saveWithPhoto(@RequestBody Product product, BindingResult bindingResult) throws IOException {
         if (bindingResult.hasErrors()) return validate(bindingResult);

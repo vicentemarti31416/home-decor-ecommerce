@@ -5,6 +5,7 @@ import com.vcn.orders.client.ProductClient;
 import com.vcn.orders.exception.BadRequestException;
 import com.vcn.orders.exception.ForbiddenException;
 import com.vcn.orders.model.*;
+import com.vcn.orders.producer.UpdateStockProducer;
 import com.vcn.orders.publisher.Publisher;
 import com.vcn.orders.repository.OrderRepository;
 import com.vcn.orders.exception.NotFoundException;
@@ -30,15 +31,17 @@ public class OrderServiceImpl implements OrderService {
     private final Publisher publisher;
     private final ProductClient productClient;
     private final PaymentClient paymentClient;
+    private final UpdateStockProducer updateStockProducer;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             Publisher publisher,
                             ProductClient productClient,
-                            PaymentClient paymentClient) {
+                            PaymentClient paymentClient, UpdateStockProducer updateStockProducer) {
         this.orderRepository = orderRepository;
         this.publisher = publisher;
         this.productClient = productClient;
         this.paymentClient = paymentClient;
+        this.updateStockProducer = updateStockProducer;
     }
 
     @Override
@@ -107,10 +110,10 @@ public class OrderServiceImpl implements OrderService {
     public Order updateOrderStatus(StatusRequest statusRequest, Jwt jwt) {
         Order orderDB = findById(statusRequest.orderId());
         orderDB.setStatus(OrderStatus.valueOf(statusRequest.status()));
-        Order saved = orderRepository.save(orderDB);
-        productClient.updateStock(saved, jwt);
-        notifyPayment(saved, jwt);
-        return saved;
+        Order orderUpdated = orderRepository.save(orderDB);
+        updateStockProducer.sendUpdateStock(orderUpdated);
+        notifyPayment(orderUpdated, jwt);
+        return orderUpdated;
     }
 
     /**
