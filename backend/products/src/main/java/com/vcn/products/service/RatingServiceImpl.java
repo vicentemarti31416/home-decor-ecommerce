@@ -7,7 +7,6 @@ import com.vcn.products.repository.RatingRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RatingServiceImpl implements RatingService {
@@ -20,7 +19,9 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     public Rating findById(Long id) {
-        return ratingRepository.findById(id).orElseThrow(() -> new NotFoundException("Review not found"));
+        return ratingRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException("Review not found"));
     }
 
     @Override
@@ -39,8 +40,7 @@ public class RatingServiceImpl implements RatingService {
         return toReviewResponse(ratingDB);
     }
 
-    @Override
-    public ReviewResponse toReviewResponse(Rating rating) {
+    private ReviewResponse toReviewResponse(Rating rating) {
         return ReviewResponse.builder()
                 .id(rating.getId())
                 .stars(rating.getStars())

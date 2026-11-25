@@ -11,5 +11,4 @@ public interface RatingService {
     Rating findById(Long id);
     Page<ReviewResponse> findReviewsFiltered(Long productId, Integer stars, Pageable pageable);
     ReviewResponse findReviewByProductIdAndUsername(Long productId, String username);
-    ReviewResponse toReviewResponse(Rating rating);
 }

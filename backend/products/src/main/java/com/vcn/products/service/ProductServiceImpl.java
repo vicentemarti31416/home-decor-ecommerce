@@ -1,5 +1,6 @@
 package com.vcn.products.service;
 
+import com.vcn.products.client.UserClient;
 import com.vcn.products.exception.ForbiddenException;
 import com.vcn.products.exception.NotFoundException;
 import com.vcn.products.exception.UpdatingStockException;
@@ -20,15 +21,15 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final ImageUploadService imageUploadService;
-    private final RestClient restClient;
+    private final UserClient userClient;
     private final RatingService ratingService;
 
     public ProductServiceImpl(ProductRepository productRepository,
                               ImageUploadService imageUploadService,
-                              RestClient restClient, RatingService ratingService) {
+                              RestClient restClient, UserClient userClient, RatingService ratingService) {
         this.productRepository = productRepository;
         this.imageUploadService = imageUploadService;
-        this.restClient = restClient;
+        this.userClient = userClient;
         this.ratingService = ratingService;
     }
 
@@ -39,7 +40,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product findById(Long id) {
-        return productRepository.findById(id).orElseThrow(() -> new NotFoundException("Producto no encontrado"));
+        return productRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
     }
 
     @Override
@@ -49,17 +52,21 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> findAllById(List<Long> ids) {
-        return productRepository.findByIdIn(ids).orElseThrow(() -> new NotFoundException("Listado de productos no encontrado"));
+        return productRepository
+                .findByIdIn(ids)
+                .orElseThrow(() -> new NotFoundException("Listado de productos no encontrado"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> findAllProductResponseById(List<Long> ids) {
-        List<Product> products = productRepository.findByIdIn(ids).orElseThrow(() -> new NotFoundException("Listado de productos no encontrado"));
+        List<Product> products = productRepository
+                .findByIdIn(ids)
+                .orElseThrow(() -> new NotFoundException("Listado de productos no encontrado"));
         return products
                 .stream()
                 .map(product -> {
-                    ProductResponse productResponse = ProductResponse
+                    return ProductResponse
                             .builder()
                             .id(product.getId())
                             .name(product.getName())
@@ -68,7 +75,6 @@ public class ProductServiceImpl implements ProductService {
                             .photo(product.getPhotos().getFirst().getUrl())
                             .rating(product.getRating())
                             .build();
-                    return productResponse;
                 })
                 .toList();
     }
@@ -86,7 +92,7 @@ public class ProductServiceImpl implements ProductService {
                 null,
                 ratingRequest.stars(),
                 ratingRequest.comment(),
-                getCustomerName(jwt),
+                userClient.getCustomerName(jwt),
                 jwt.getSubject(),
                 productDB
         );
@@ -219,27 +225,7 @@ public class ProductServiceImpl implements ProductService {
         return save(productDB);
     }
 
-    @Override
-    public String getCustomerName(Jwt jwt) {
-        String token = jwt.getTokenValue();
-        return restClient
-                .get()
-                .uri("http://localhost:8099/users/restclient/customer")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                            throw new RuntimeException("Error de solicitud");
-                        }
-                )
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                            throw new RuntimeException("Servidor no disponible");
-                        }
-                )
-                .body(String.class);
-    }
-
-    @Override
-    public ProductRecord toProductRecord(Product product) {
+    private ProductRecord toProductRecord(Product product) {
         return ProductRecord.builder()
                 .id(product.getId())
                 .price(product.getPrice())

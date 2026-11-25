@@ -88,7 +88,9 @@ public class OrderController {
      * Se encarga de actualizar el status de una Order después de hacer el pago
      */
     @PatchMapping("/restclient/update-status")
-    public ResponseEntity<?> updateOrderStatus(@Validated @RequestBody StatusRequest statusRequest, @AuthenticationPrincipal Jwt jwt, BindingResult bindingResult) {
+    public ResponseEntity<?> updateOrderStatus(@Validated @RequestBody StatusRequest statusRequest,
+                                               @AuthenticationPrincipal Jwt jwt,
+                                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return validate(bindingResult);
         return ResponseEntity.ok(orderService.updateOrderStatus(statusRequest, jwt));
     }

@@ -25,6 +25,4 @@ public interface ProductService {
     HttpStatus updateStock(Map<Long, Long> products);
     Product saveWithPhoto(Product product);
     Product updateProduct(Product product);
-    String getCustomerName(Jwt jwt);
-    ProductRecord toProductRecord(Product product);
 }

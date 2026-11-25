@@ -60,8 +60,7 @@ public class ChatServiceImpl implements ChatService {
         return chatRepository.findById(id).orElseThrow(() -> new NotFoundException(("Chat no encontrado")));
     }
 
-    @Override
-    public ChatDTO toChatDTO(Chat chat) {
+    private ChatDTO toChatDTO(Chat chat) {
         return ChatDTO.builder()
                 .id(chat.getId())
                 .chatRoomType(chat.getChatRoomType().name())

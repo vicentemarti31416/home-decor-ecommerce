@@ -7,5 +7,4 @@ public interface ChatService {
 
     ChatDTO getChat(String sender, String receiver);
     Chat findById(Long id);
-    ChatDTO toChatDTO(Chat chat);
 }

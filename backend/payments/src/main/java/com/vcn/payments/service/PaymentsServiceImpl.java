@@ -6,13 +6,12 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
+import com.vcn.payments.client.OrderClient;
 import com.vcn.payments.model.IntentRequest;
 import com.vcn.payments.model.IntentResponse;
 import com.vcn.payments.model.StatusRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 @Service
 public class PaymentsServiceImpl implements PaymentsService {
@@ -21,11 +20,11 @@ public class PaymentsServiceImpl implements PaymentsService {
     private String secret;
 
     private final StripeClient stripeClient;
-    private final RestClient restClient;
+    private final OrderClient orderClient;
 
-    public PaymentsServiceImpl(StripeClient stripeClient, RestClient restClient) {
+    public PaymentsServiceImpl(StripeClient stripeClient, OrderClient orderClient) {
         this.stripeClient = stripeClient;
-        this.restClient = restClient;
+        this.orderClient = orderClient;
     }
 
     @Override
@@ -48,7 +47,13 @@ public class PaymentsServiceImpl implements PaymentsService {
 
     @Override
     public void handleWebhook(String payload, String signature) throws SignatureVerificationException {
-        Event event = Webhook.constructEvent(payload, signature, secret);
+        Event event;
+        try {
+            event = Webhook.constructEvent(payload, signature, secret);
+        } catch (Exception e) {
+            System.out.println("ERROR WEBHOOK: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            throw e;
+        }
         switch (event.getType()) {
             case "payment_intent.succeeded" -> handlePaymentSucceeded(event);
             case "payment_intent.payment_failed" -> handlePaymentFailed(event);
@@ -56,43 +61,23 @@ public class PaymentsServiceImpl implements PaymentsService {
         }
     }
 
-    @Override
-    public void handlePaymentSucceeded(Event event) {
+    private void handlePaymentSucceeded(Event event) {
         event.getDataObjectDeserializer()
                 .getObject()
                 .ifPresent(stripeObject -> {
                     PaymentIntent intent = (PaymentIntent) stripeObject;
                     String orderId = intent.getMetadata().get("orderId");
-                    updateOrderStatus(new StatusRequest(orderId, "PAID"));
+                    orderClient.updateOrderStatus(new StatusRequest(orderId, "PAID"));
                 });
     }
 
-    @Override
-    public void handlePaymentFailed(Event event) {
+    private void handlePaymentFailed(Event event) {
         event.getDataObjectDeserializer()
                 .getObject()
                 .ifPresent(stripeObject -> {
                     PaymentIntent intent = (PaymentIntent) stripeObject;
                     String orderId = intent.getMetadata().get("orderId");
-                    updateOrderStatus(new StatusRequest(orderId, "CANCELLED"));
+                    orderClient.updateOrderStatus(new StatusRequest(orderId, "CANCELLED"));
                 });
-    }
-
-    @Override
-    public void updateOrderStatus(StatusRequest statusRequest) {
-        restClient
-                .patch()
-                .uri("http://localhost:8096/orders/restclient/update-status")
-                .body(statusRequest)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                            throw new RuntimeException("Pedido no encontrado");
-                        }
-                )
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                            throw new RuntimeException("Servidor no disponible");
-                        }
-                )
-                .toBodilessEntity();
     }
 }

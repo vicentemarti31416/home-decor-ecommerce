@@ -1,17 +1,16 @@
 package com.vcn.orders.service;
 
+import com.vcn.orders.client.PaymentClient;
+import com.vcn.orders.client.ProductClient;
 import com.vcn.orders.exception.BadRequestException;
 import com.vcn.orders.exception.ForbiddenException;
 import com.vcn.orders.model.*;
 import com.vcn.orders.publisher.Publisher;
 import com.vcn.orders.repository.OrderRepository;
 import com.vcn.orders.exception.NotFoundException;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,23 +27,32 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final RestClient restClient;
     private final Publisher publisher;
+    private final ProductClient productClient;
+    private final PaymentClient paymentClient;
 
-    public OrderServiceImpl(OrderRepository orderRepository, RestClient restClient, Publisher publisher) {
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            Publisher publisher,
+                            ProductClient productClient,
+                            PaymentClient paymentClient) {
         this.orderRepository = orderRepository;
-        this.restClient = restClient;
         this.publisher = publisher;
+        this.productClient = productClient;
+        this.paymentClient = paymentClient;
     }
 
     @Override
     public List<Order> findAllByUsername(String username) {
-        return orderRepository.findAllByUsername(username).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        return orderRepository
+                .findAllByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
     }
 
     @Override
     public Order findById(String id) {
-        return orderRepository.findById(id).orElseThrow(() -> new NotFoundException("Pedido no encontrado"));
+        return orderRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException("Pedido no encontrado"));
     }
 
     @Override
@@ -91,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("orderId", order.getId());
         IntentRequest itemRequest = new IntentRequest(cents, "eur", metadata);
-        return intentPayment(itemRequest, jwt);
+        return paymentClient.intentPayment(itemRequest, jwt);
     }
 
     @Override
@@ -100,48 +108,9 @@ public class OrderServiceImpl implements OrderService {
         Order orderDB = findById(statusRequest.orderId());
         orderDB.setStatus(OrderStatus.valueOf(statusRequest.status()));
         Order saved = orderRepository.save(orderDB);
-        updateStock(saved, jwt);
+        productClient.updateStock(saved, jwt);
         notifyPayment(saved, jwt);
         return saved;
-    }
-
-    @Override
-    public List<Item> checkStockAndPrice(Order order, Jwt jwt) {
-        Map<Long, ProductRecord> productRecordMap = order.getItems()
-                .stream()
-                .map(item -> findProductById(item.getProductId(), jwt))
-                .collect(Collectors.toMap(ProductRecord::id, productRecord -> productRecord));
-        return order.getItems()
-                .stream()
-                .map(item -> {
-                    ProductRecord productRecord = productRecordMap.get(item.getProductId());
-                    item.setUnitPrice(productRecord.price());
-                    if (productRecord.stock() < item.getQuantity()) item.setQuantity(productRecord.stock());
-                    return item;
-                })
-                .toList();
-    }
-
-    @Override
-    public ProductRecord findProductById(Long id, Jwt jwt) {
-        String token = jwt.getTokenValue();
-        return restClient
-                .get()
-                .uri("http://localhost:8095/products/restclient/{id}", id)
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-                .retrieve()
-                .onStatus(httpStatusCode -> httpStatusCode.value() == 404, (request, response) -> {
-                    throw new NotFoundException("Producto no encontrado");
-                })
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                            throw new RuntimeException("Error de solicitud");
-                        }
-                )
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                            throw new RuntimeException("Servidor no disponible");
-                        }
-                )
-                .body(ProductRecord.class);
     }
 
     /**
@@ -176,121 +145,8 @@ public class OrderServiceImpl implements OrderService {
                                 .map(Item::getProductId))
                         .distinct()
                         .toList();
-        List<ProductResponse> products = findProductsById(productIds, jwt);
+        List<ProductResponse> products = productClient.findProductsById(productIds, jwt);
         return toOrderResponsePage(ordersDB, products);
-    }
-
-    /**
-     * Convierte los Items de cada pedido en ProductResponse con toda su información adicional
-     * para mostrarlos en el listado de Orders de la vista porque dichos Item no tienen la misma
-     * información que los ProductResponse (reference, photo...)
-     */
-    @Override
-    public Page<OrderResponse> toOrderResponsePage(Page<Order> orders, List<ProductResponse> products) {
-        return orders
-                .map(order -> {
-                    // Crea un map con la key como el productId y el value su cantidad, obtenido de cada Item del pedido
-                    Map<Long, Long> quantities = order.getItems()
-                            .stream()
-                            .collect(Collectors.toMap(Item::getProductId, Item::getQuantity));
-                    /**
-                     * Puebla el campo quantity de cada ProductResponse
-                     * Lo he dejado así en lugar de enviar esa información el ms Product porque es un campo
-                     * que pertenece al Item de ms orders, no al ms products. Así, hay más desacoplamiento
-                     */
-                    List<ProductResponse> productResponseList = products
-                            .stream()
-                            .filter(productResponse -> quantities.containsKey(productResponse.id()))
-                            .map(productResponse -> {
-                                return ProductResponse
-                                        .builder()
-                                        .id(productResponse.id())
-                                        .name(productResponse.name())
-                                        .price(productResponse.price())
-                                        .quantity(quantities.get(productResponse.id()))
-                                        .reference(productResponse.reference())
-                                        .photo(productResponse.photo())
-                                        .build();
-                            })
-                            .toList();
-                    return OrderResponse
-                            .builder()
-                            .id(order.getId())
-                            .amount(order.getAmount() != null ? order.getAmount().doubleValue() : 0.0)
-                            .status(order.getStatus().name())
-                            .createdDate(order.getCreatedDate())
-                            .updatedDate(order.getUpdatedDate())
-                            .products(productResponseList)
-                            .build();
-                });
-    }
-
-    @Override
-    public List<ProductResponse> findProductsById(List<Long> ids, Jwt jwt) {
-        String token = jwt.getTokenValue();
-        return restClient
-                .post()
-                .uri("http://localhost:8095/products/restclient/product-response")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-                .body(ids)
-                .retrieve()
-                .onStatus(httpStatusCode -> httpStatusCode.value() == 404, (request, response) -> {
-                    throw new NotFoundException("Producto no encontrado");
-                })
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                            throw new NotFoundException("Error de solicitud");
-                        }
-                )
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                            throw new RuntimeException("Servidor no disponible");
-                        }
-                )
-                .body(new ParameterizedTypeReference<List<ProductResponse>>() {
-                });
-    }
-
-    @Override
-    public void updateStock(Order order, Jwt jwt) {
-        String token = jwt.getTokenValue();
-        Map<Long, Long> products = order.getItems()
-                .stream()
-                .collect(Collectors.toMap(Item::getProductId, Item::getQuantity));
-        restClient
-                .post()
-                .uri("http://localhost:8095/products/restclient/updateStock")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-                .body(products)
-                .retrieve()
-                .onStatus(httpStatusCode -> httpStatusCode.value() == 404, (request, response) -> {
-                    throw new NotFoundException("Producto no encontrado");
-                })
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                            throw new RuntimeException("Error de solicitud");
-                        }
-                )
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                            throw new RuntimeException("Servidor no disponible");
-                        }
-                )
-                .toBodilessEntity();
-    }
-
-    @Override
-    public String intentPayment(IntentRequest intentRequest, Jwt jwt) {
-        String token = jwt.getTokenValue();
-        return restClient
-                .post()
-                .uri("http://localhost:8097/payments/restclient/intent-payment")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-                .body(intentRequest)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    throw new RuntimeException("Error de solicitud");
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                    throw new RuntimeException("Servidor no disponible");
-                })
-                .body(String.class);
     }
 
     /**
@@ -310,15 +166,30 @@ public class OrderServiceImpl implements OrderService {
         return orderOptional.get();
     }
 
+    private List<Item> checkStockAndPrice(Order order, Jwt jwt) {
+        Map<Long, ProductRecord> productRecordMap = order.getItems()
+                .stream()
+                .map(item -> productClient.findProductById(item.getProductId(), jwt))
+                .collect(Collectors.toMap(ProductRecord::id, productRecord -> productRecord));
+        return order.getItems()
+                .stream()
+                .map(item -> {
+                    ProductRecord productRecord = productRecordMap.get(item.getProductId());
+                    item.setUnitPrice(productRecord.price());
+                    if (productRecord.stock() < item.getQuantity()) item.setQuantity(productRecord.stock());
+                    return item;
+                })
+                .toList();
+    }
+
     // Usa RabbitMQ para enviar un mensaje de confirmación de pedido al email del cliente
-    @Override
-    public void notifyPayment(Order order, Jwt jwt) {
+    private void notifyPayment(Order order, Jwt jwt) {
         List<Long> productIds = order
                 .getItems()
                 .stream()
                 .map(Item::getProductId)
                 .toList();
-        List<ProductResponse> products = findProductsById(productIds, jwt);
+        List<ProductResponse> products = productClient.findProductsById(productIds, jwt);
         OrderResponse orderResponse = toOrderResponseList(List.of(order), products).getFirst();
         OrderConfirmationRequest orderConfirmationRequest = OrderConfirmationRequest
                 .builder()
@@ -329,50 +200,49 @@ public class OrderServiceImpl implements OrderService {
         publisher.send(orderConfirmationRequest);
     }
 
-    /**
-     * Convierte los Items de cada pedido en ProductResponse con toda su información adicional
-     * para mostrarlos en el listado de Orders de la vista porque dichos Item no tienen la misma
-     * información que los ProductResponse (reference, photo...)
-     */
-    @Override
-    public List<OrderResponse> toOrderResponseList(List<Order> orders, List<ProductResponse> products) {
-        return orders
-                .stream()
-                .map(order -> {
-                    // Crea un map con la key como el productId y el value su cantidad, obtenido de cada Item del pedido
-                    Map<Long, Long> quantities = order.getItems()
-                            .stream()
-                            .collect(Collectors.toMap(Item::getProductId, Item::getQuantity));
-                    /**
-                     * Puebla el campo quantity de cada ProductResponse
-                     * Lo he dejado así en lugar de enviar esa información el ms Product porque es un campo
-                     * que pertenece al Item de ms orders, no al ms products. Así, hay más desacoplamiento
-                     */
-                    List<ProductResponse> productResponseList = products
-                            .stream()
-                            .filter(productResponse -> quantities.containsKey(productResponse.id()))
-                            .map(productResponse -> {
-                                return ProductResponse
-                                        .builder()
-                                        .id(productResponse.id())
-                                        .name(productResponse.name())
-                                        .price(productResponse.price())
-                                        .quantity(quantities.get(productResponse.id()))
-                                        .reference(productResponse.reference())
-                                        .photo(productResponse.photo())
-                                        .build();
-                            })
-                            .toList();
-                    return OrderResponse
-                            .builder()
-                            .id(order.getId())
-                            .amount(order.getAmount() != null ? order.getAmount().doubleValue() : 0.0)
-                            .status(order.getStatus().name())
-                            .createdDate(order.getCreatedDate())
-                            .updatedDate(order.getUpdatedDate())
-                            .products(productResponseList)
-                            .build();
-                })
-                .toList();
+    private List<OrderResponse> toOrderResponseList(List<Order> orders, List<ProductResponse> products) {
+        return orders.stream().map(order -> toOrderResponse(order, products)).toList();
     }
+
+    private Page<OrderResponse> toOrderResponsePage(Page<Order> orders, List<ProductResponse> products) {
+        return orders.map(order -> toOrderResponse(order, products));
+    }
+
+    /**
+     * Convierte los Items de cada pedido en ProductResponse con toda su información adicional (reference, photo...)
+     */
+    private OrderResponse toOrderResponse(Order order, List<ProductResponse> products) {
+        Map<Long, Long> quantities = order.getItems()
+                .stream()
+                .collect(Collectors.toMap(Item::getProductId, Item::getQuantity));
+        /*
+          Puebla el campo quantity de cada ProductResponse
+          Lo he dejado así en lugar de enviar esa información el ms Product porque es un campo
+          que pertenece al Item de ms orders, no al ms products. Así, hay más desacoplamiento
+         */
+        List<ProductResponse> productResponseList = products
+                .stream()
+                .filter(productResponse -> quantities.containsKey(productResponse.id()))
+                .map(productResponse -> ProductResponse
+                        .builder()
+                        .id(productResponse.id())
+                        .name(productResponse.name())
+                        .price(productResponse.price())
+                        .quantity(quantities.get(productResponse.id()))
+                        .reference(productResponse.reference())
+                        .photo(productResponse.photo())
+                        .build()
+                )
+                .toList();
+        return OrderResponse
+                .builder()
+                .id(order.getId())
+                .amount(order.getAmount() != null ? order.getAmount().doubleValue() : 0.0)
+                .status(order.getStatus().name())
+                .createdDate(order.getCreatedDate())
+                .updatedDate(order.getUpdatedDate())
+                .products(productResponseList)
+                .build();
+    }
+
 }

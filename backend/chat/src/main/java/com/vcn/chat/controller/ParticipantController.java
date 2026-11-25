@@ -16,7 +16,6 @@ public class ParticipantController {
         this.participantService = participantService;
     }
 
-    // TODO: Añadir comprobación de seguridad antes de devolver la información
     @GetMapping("/participants")
     public ResponseEntity<?> findAll() {
         return ResponseEntity.ok(participantService.findAll());
