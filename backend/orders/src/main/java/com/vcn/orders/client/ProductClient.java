@@ -67,29 +67,4 @@ public class ProductClient {
                 .body(new ParameterizedTypeReference<List<ProductResponse>>() {
                 });
     }
-
-    public void updateStock(Order order, Jwt jwt) {
-        String token = jwt.getTokenValue();
-        Map<Long, Long> products = order.getItems()
-                .stream()
-                .collect(Collectors.toMap(Item::getProductId, Item::getQuantity));
-        restClient
-                .post()
-                .uri("http://localhost:8095/products/restclient/updateStock")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
-                .body(products)
-                .retrieve()
-                .onStatus(httpStatusCode -> httpStatusCode.value() == 404, (request, response) -> {
-                    throw new NotFoundException("Producto no encontrado");
-                })
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                            throw new RuntimeException("Error de solicitud");
-                        }
-                )
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                            throw new RuntimeException("Servidor no disponible");
-                        }
-                )
-                .toBodilessEntity();
-    }
 }

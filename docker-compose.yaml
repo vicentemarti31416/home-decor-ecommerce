@@ -1,4 +1,8 @@
 services:
+  kafka:
+    image: apache/kafka:latest
+    ports:
+      - "9092:9092"
   mariadb:
     image: mariadb:10.11
     container_name: store-mariadb
